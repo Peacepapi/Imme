@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Imme.Repositories
 {
-    public class CardRepository : ICardInterface
+    public class CardRepository : ICardRepository
     {
         private readonly ApplicationDbContext _context;
         public CardRepository(ApplicationDbContext context)
@@ -18,9 +18,15 @@ namespace Imme.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<Card> DeleteAsync(int id)
+        public async Task<Card?> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var card = await _context.Card.FirstOrDefaultAsync(c => c.Id == id);
+            if (card is null) return null;
+
+            _context.Card.Remove(card);
+            await _context.SaveChangesAsync();
+
+            return card;
         }
 
         public async Task<List<Card>> GetAllAsync()

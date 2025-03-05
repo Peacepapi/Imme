@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Imme.Repositories
 {
-    public class DeckRepository : IDeckInterface
+    public class DeckRepository : IDeckRepository
     {
         private readonly ApplicationDbContext _context;
         public DeckRepository(ApplicationDbContext context)
@@ -18,20 +18,26 @@ namespace Imme.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<Deck> DeleteAsync(int id)
+        public async Task<Deck?> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var deck = await _context.Deck.FirstOrDefaultAsync(d => d.Id == id);
+            if (deck is null) return null;
+
+            _context.Deck.Remove(deck);
+            await _context.SaveChangesAsync();
+
+            return deck;
         }
 
         public async Task<List<Deck>> GetAllAsync()
         {
-            var decks = await _context.Deck.ToListAsync();
+            var decks = await _context.Deck.Include(d => d.Cards).ToListAsync();
             return decks;
         }
 
         public async Task<Deck?> GetByIdAsync(int id)
         {
-            var deck = await _context.Deck.FirstOrDefaultAsync(d => d.Id == id);
+            var deck = await _context.Deck.Include(d => d.Cards).FirstOrDefaultAsync(d => d.Id == id);
             return deck;
         }
     }
