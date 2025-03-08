@@ -13,9 +13,12 @@ namespace Imme.Repositories
             _context = context;
         }
 
-        public Task<Deck> CreateAsync(Deck deck)
+        public async Task<Deck> CreateAsync(Deck deck)
         {
-            throw new NotImplementedException();
+            await _context.AddAsync(deck);
+            await _context.SaveChangesAsync();
+
+            return deck;
         }
 
         public async Task<Deck?> DeleteAsync(int id)

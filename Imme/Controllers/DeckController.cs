@@ -1,4 +1,6 @@
 ﻿using Imme.Interfaces;
+using Imme.Mappers;
+using Imme.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Imme.Controllers
@@ -18,7 +20,9 @@ namespace Imme.Controllers
         public async Task<IActionResult> GetAll()
         {
             var decks = await _deckRepo.GetAllAsync();
-            return Ok(decks);
+            var decksDto = decks.Select(d => d.ToResponseDeckDto());
+
+            return Ok(decksDto);
         }
 
         [HttpGet]
@@ -26,7 +30,9 @@ namespace Imme.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var deck = await _deckRepo.GetByIdAsync(id);
-            return Ok(deck);
+            if (deck is null) return NotFound("Deck not found.");
+
+            return Ok(deck.ToResponseDeckDto());
         }
 
         [HttpDelete]
@@ -37,6 +43,16 @@ namespace Imme.Controllers
             if (deck is null) return NotFound("Deck not found.");
 
             return NoContent();
+        }
+
+        [HttpPost]
+        [Route("{userId}")]
+        public async Task<IActionResult> Create(int userId, [FromBody] RequestDeckDto requestDeckDto)
+        {
+            var deck = requestDeckDto.FromRequestDeckDto(userId);
+            var newDeck = await _deckRepo.CreateAsync(deck);
+
+            return Created();
         }
     }
 }
