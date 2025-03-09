@@ -1,4 +1,5 @@
-﻿using Imme.Models.DTOs.Account;
+﻿using Imme.Interfaces;
+using Imme.Models.DTOs.Account;
 using Imme.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,9 +11,11 @@ namespace Imme.Controllers
     public class AccountController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
-        public AccountController(UserManager<User> userManager)
+        private readonly ITokenService _tokenService;
+        public AccountController(UserManager<User> userManager, ITokenService tokenService)
         {
             _userManager = userManager;
+            _tokenService = tokenService;
         }
 
         [HttpPost("register")]
@@ -38,7 +41,13 @@ namespace Imme.Controllers
                     var roleResult = await _userManager.AddToRoleAsync(user, "User");
                     if (roleResult.Succeeded)
                     {
-                        return Ok("User created");
+                        var userDto = new UserDto
+                        {
+                            Username = user.UserName,
+                            Email = user.Email,
+                            Token = _tokenService.CreateToken(user)
+                        };
+                        return Ok(userDto);
                     } else 
                     {
                         return StatusCode(500, roleResult.Errors);
