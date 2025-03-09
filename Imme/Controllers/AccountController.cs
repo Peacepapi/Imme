@@ -3,6 +3,7 @@ using Imme.Models.DTOs.Account;
 using Imme.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Imme.Controllers
 {
@@ -12,10 +13,12 @@ namespace Imme.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly ITokenService _tokenService;
-        public AccountController(UserManager<User> userManager, ITokenService tokenService)
+        private readonly SignInManager<User> _signInManager;
+        public AccountController(UserManager<User> userManager, ITokenService tokenService, SignInManager<User> signInManager)
         {
             _userManager = userManager;
             _tokenService = tokenService;
+            _signInManager = signInManager;
         }
 
         [HttpPost("register")]
@@ -60,6 +63,28 @@ namespace Imme.Controllers
             {
                 return StatusCode(500, e.Message);
             }
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.UserName == loginDto.Username.ToLower());
+            if (user is null) return Unauthorized("Invalid Username");
+
+            var result = _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+
+            if (!result.IsCompletedSuccessfully) return Unauthorized("Username not found and/or password is incorrect");
+
+            var userDto = new UserDto
+            {
+                Username = user.UserName,
+                Email = user.Email,
+                Token = _tokenService.CreateToken(user)
+            };
+
+            return Ok(userDto);
         }
     }
 }

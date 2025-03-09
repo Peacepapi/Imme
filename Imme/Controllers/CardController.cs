@@ -1,10 +1,12 @@
 ﻿using Imme.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Imme.Controllers
 {
     [Route("api/card")]
     [ApiController]
+    [Authorize]
     public class CardController : ControllerBase
     {
         private readonly ICardRepository _cardRepo;

@@ -1,12 +1,14 @@
 ﻿using Imme.Interfaces;
 using Imme.Mappers;
 using Imme.Models.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Imme.Controllers
 {
     [Route("api/deck")]
     [ApiController]
+    [Authorize]
     public class DeckController : ControllerBase
     {
         private readonly IDeckRepository _deckRepo;
